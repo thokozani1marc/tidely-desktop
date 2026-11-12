@@ -1,0 +1,58 @@
+{
+  "name": "tidely-pos-desktop",
+  "productName": "Tidely POS",
+  "version": "1.0.0",
+  "description": "Tidely POS desktop app (Electron shell around the live Tidely POS)",
+  "author": "Tidely",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:test": "electron . --url=https://id-preview--28c4e56c-7825-47a5-91f4-31729414da34.lovable.app",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/settings-store.js",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^45.3.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "za.co.tidely.pos",
+    "productName": "Tidely POS",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tidely POS",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Tidely-POS-Setup.${ext}"
+    },
+    "appx": {
+      "applicationId": "TidelyPOS",
+      "displayName": "Tidely POS",
+      "backgroundColor": "#00AEEF",
+      "languages": [
+        "en-US"
+      ]
+    }
+  }
+}
