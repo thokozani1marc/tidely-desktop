@@ -27,7 +27,7 @@ jobs:
           node-version: 22
       - run: npm install
       - name: Build MSIX/APPX package
-        run: npx electron-builder --win appx --x64 "-c.appx.identityName=$env:IDENTITY_NAME" "-c.appx.publisher=$env:PUBLISHER" "-c.appx.publisherDisplayName=$env:PUBLISHER_DISPLAY_NAME"
+        run: npx electron-builder --win appx --x64 --publish never "-c.appx.identityName=$env:IDENTITY_NAME" "-c.appx.publisher=$env:PUBLISHER" "-c.appx.publisherDisplayName=$env:PUBLISHER_DISPLAY_NAME"
       - uses: actions/upload-artifact@v4
         with:
           name: Tidely-POS-Store-Package
