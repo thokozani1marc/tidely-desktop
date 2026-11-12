@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Tidely POS settings</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:20px 24px;background:#fff;color:#1b2430;font-size:14px}
+  h1{font-size:20px;margin:0 0 16px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#556070;margin:22px 0 8px}
+  label{display:block;margin:10px 0 4px;font-weight:600}
+  input[type=text],select{width:100%;padding:9px 10px;border:1px solid #c5ccd6;border-radius:6px;font-size:14px}
+  .row{display:flex;gap:8px;align-items:center}
+  .check{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-weight:400}
+  .check input{margin-top:3px}
+  .hint{color:#6b7686;font-size:12.5px;margin:4px 0 0;line-height:1.4}
+  button{font-size:14px;padding:9px 16px;border:1px solid #c5ccd6;border-radius:6px;background:#f4f6fa;cursor:pointer}
+  button.primary{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+  .bar{display:flex;gap:8px;margin-top:24px}
+  #msg{margin-top:12px;min-height:20px;font-size:13px}
+  .ok{color:#15803d}.err{color:#b91c1c}
+</style>
+</head>
+<body>
+<h1>Tidely POS settings</h1>
+
+<h2>Receipt printing</h2>
+<label for="printer">Receipt printer</label>
+<div class="row">
+  <select id="printer"></select>
+  <button id="refresh" type="button">Refresh</button>
+</div>
+<label for="paper">Paper width</label>
+<select id="paper">
+  <option value="0">Use the printer's own setting</option>
+  <option value="58">58 mm roll</option>
+  <option value="80">80 mm roll</option>
+</select>
+<label class="check"><input type="checkbox" id="silent">
+  <span>Print slips straight to this printer (no print window)
+  <p class="hint">Applies to slips and receipts the POS prints. Reports and Ctrl+P still show the normal print window.</p></span>
+</label>
+
+<h2>This computer</h2>
+<label class="check"><input type="checkbox" id="autostart"><span>Start Tidely POS when Windows starts</span></label>
+<label class="check"><input type="checkbox" id="kiosk"><span>Full-screen till mode (no title bar)
+  <p class="hint">Use Alt+F4 to close the app. Press F11 in the app to leave full screen.</p></span></label>
+
+<h2>Customer screen (dual-screen terminals)</h2>
+<label class="check"><input type="checkbox" id="cd"><span>Open the customer display on the second screen at start</span></label>
+<label for="cdpath">Customer display page</label>
+<input type="text" id="cdpath" placeholder="/customer-display">
+
+<h2>Advanced</h2>
+<label for="url">POS address</label>
+<input type="text" id="url" placeholder="https://tidely-pos-system.lovable.app">
+<p class="hint">Only change this if Tidely support tells you to. Needs a restart to apply.</p>
+
+<div class="bar">
+  <button class="primary" id="save" type="button">Save</button>
+  <button id="test" type="button">Print test slip</button>
+  <button id="close" type="button">Close</button>
+</div>
+<div id="msg"></div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  var bridge = window.tidelyDesktop;
+  var current = null;
+
+  function say(text, ok) { var m = $('msg'); m.textContent = text; m.className = ok ? 'ok' : 'err'; }
+
+  function loadPrinters(selected) {
+    return bridge.getPrinters().then(function (list) {
+      var sel = $('printer');
+      sel.innerHTML = '';
+      var def = document.createElement('option');
+      def.value = ''; def.textContent = 'Windows default printer';
+      sel.appendChild(def);
+      list.forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.name;
+        o.textContent = (p.displayName || p.name) + (p.isDefault ? ' (default)' : '');
+        sel.appendChild(o);
+      });
+      sel.value = selected || '';
+      if (sel.value !== (selected || '')) {
+        // saved printer is not installed any more
+        var missing = document.createElement('option');
+        missing.value = selected; missing.textContent = selected + ' (not found)';
+        sel.appendChild(missing); sel.value = selected;
+      }
+    });
+  }
+
+  function fill(s) {
+    current = s;
+    $('paper').value = String(s.paperWidthMm || 0);
+    $('silent').checked = !!s.silentPrint;
+    $('autostart').checked = !!s.autoStart;
+    $('kiosk').checked = !!s.kiosk;
+    $('cd').checked = !!(s.customerDisplay && s.customerDisplay.enabled);
+    $('cdpath').value = (s.customerDisplay && s.customerDisplay.path) || '/customer-display';
+    $('url').value = s.url || '';
+    return loadPrinters(s.printerName);
+  }
+
+  function collect() {
+    return {
+      printerName: $('printer').value,
+      paperWidthMm: Number($('paper').value),
+      silentPrint: $('silent').checked,
+      autoStart: $('autostart').checked,
+      kiosk: $('kiosk').checked,
+      customerDisplay: { enabled: $('cd').checked, path: $('cdpath').value.trim() || '/customer-display' },
+      url: $('url').value.trim(),
+    };
+  }
+
+  function save() {
+    return bridge.settings.set(collect()).then(function (res) {
+      current = res.settings;
+      if (res.needsRestart) {
+        say('Saved. Restarting to use the new address…', true);
+        setTimeout(function () { bridge.settings.restart(); }, 800);
+      } else {
+        say('Saved.', true);
+      }
+    });
+  }
+
+  $('refresh').addEventListener('click', function () { loadPrinters($('printer').value); });
+  $('save').addEventListener('click', save);
+  $('close').addEventListener('click', function () { window.close(); });
+  $('test').addEventListener('click', function () {
+    say('Printing test slip…', true);
+    save().then(function () { return bridge.settings.testPrint(); }).then(function (r) {
+      if (r && r.ok) say('Test slip sent to the printer.', true);
+      else say('Could not print: ' + ((r && r.error) || 'unknown error'), false);
+    });
+  });
+
+  bridge.settings.get().then(fill);
+</script>
+</body>
+</html>
