@@ -9,7 +9,7 @@
     "start": "electron .",
     "start:test": "electron . --url=https://id-preview--28c4e56c-7825-47a5-91f4-31729414da34.lovable.app",
     "check": "node --check src/main.js && node --check src/preload.js && node --check src/settings-store.js",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "electron": "^45.3.1",
