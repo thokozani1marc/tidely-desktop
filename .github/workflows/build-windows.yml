@@ -24,7 +24,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Tidely-POS-Setup
-          path: dist/Tidely-POS-Setup.exe
+          path: |
+            dist/Tidely-POS-Setup.exe
+            dist/Tidely-POS-Setup.exe.blockmap
+            dist/latest.yml
       - name: Publish GitHub Release
         if: ${{ inputs.publish_release }}
         uses: softprops/action-gh-release@v2
@@ -32,4 +35,7 @@ jobs:
           tag_name: desktop-v1.0.${{ github.run_number }}
           name: Tidely POS desktop 1.0.${{ github.run_number }}
           make_latest: true
-          files: dist/Tidely-POS-Setup.exe
+          files: |
+            dist/Tidely-POS-Setup.exe
+            dist/Tidely-POS-Setup.exe.blockmap
+            dist/latest.yml
