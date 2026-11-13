@@ -1,15 +1,18 @@
 {
   "name": "tidely-pos-desktop",
   "productName": "Tidely POS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tidely POS desktop app (Electron shell around the live Tidely POS)",
   "author": "Tidely",
-  "main": "src/main.js",
+  "main": "src/boot.js",
   "scripts": {
     "start": "electron .",
     "start:test": "electron . --url=https://id-preview--28c4e56c-7825-47a5-91f4-31729414da34.lovable.app",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/settings-store.js",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/settings-store.js && node --check src/boot.js && node --check src/updater.js",
     "dist": "electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
   },
   "devDependencies": {
     "electron": "^45.3.1",
@@ -53,6 +56,13 @@
       "languages": [
         "en-US"
       ]
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "thokozani1marc",
+        "repo": "tidely-desktop"
+      }
+    ]
   }
 }
